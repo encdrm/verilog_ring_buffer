@@ -122,16 +122,10 @@ always @(posedge clk or negedge rstn) begin
 end
 
 // Enqueue logic
-integer i;
-always @(posedge clk or negedge rstn) begin
-    if (~rstn) begin
-        for (i=0; i<MEM_DEPTH; i=i+1)
-            buffer_m[i] <= {(WIDTH){1'b0}};
-    end
-    else begin
-        if (do_enqueue)
-            buffer_m[tail] <= data_i;
-    end
+// Reset logic 사용하지 않아야 RAM으로 합성됨.
+always @(posedge clk) begin
+    if (do_enqueue)
+        buffer_m[tail] <= data_i;
 end
 
 // Dequeue logic
