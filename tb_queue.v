@@ -33,22 +33,26 @@ initial begin
     #20 rstn = 1;
 
     #20;
-    for (i=0; i<16; i=i+1) begin
-        enqueue = 1;
-        queue_in = "a" + i;
-        #10;
-    end
-    enqueue = 0;
-    for (i=0; i<16; i=i+1) begin
-        dequeue = 1;
-        #10;
-    end
-    enqueue = 1;
+    // Enqueue
+    enqueue = 1; dequeue = 0;
     for (i=0; i<16; i=i+1) begin
         queue_in = "a" + i;
         #10;
     end
-    #100;
+
+    // Dequeue
+    enqueue = 0; dequeue = 1;
+    for (i=0; i<16; i=i+1) begin
+        #10;
+    end
+
+    // Enqueue & dequeue simultaneously
+    enqueue = 1; dequeue = 1;
+    for (i=0; i<16; i=i+1) begin
+        queue_in = "a" + i;
+        #10;
+    end
+    
     dequeue = 0;
     enqueue = 0;
     #100;
