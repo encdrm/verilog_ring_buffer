@@ -112,8 +112,8 @@ end
 // Head, tail transition logic
 always @(posedge clk or negedge rstn) begin
     if (~rstn) begin
-        tail_r <= {($clog2(LENGTH+1)){1'b0}};
-        head_r <= {($clog2(LENGTH)){1'b0}};
+        tail_r <= {(ADDR_BIT){1'b0}};
+        head_r <= {(ADDR_BIT){1'b0}};
     end
     else begin
         tail_r <= tail_next;
