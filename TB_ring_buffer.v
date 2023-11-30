@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module tb_queue();
+module tb_ring_buffer();
 
 reg clk, rstn;
 reg enqueue, dequeue;
