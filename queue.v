@@ -47,7 +47,7 @@ localparam  MEM_DEPTH   = LENGTH + 1,           // LENGTH 개수 데이터 저�
             ADDR_BIT    = $clog2(MEM_DEPTH);    // Memory 주소 표현을 위한 비트 수
 
 reg [WIDTH-1:0] buffer_m [0:MEM_DEPTH-1];
-reg [ADDR_BIT-1:0] tail, head;
+reg [ADDR_BIT-1:0] tail_r, head_r;
 
 /**
  * 모듈의 상태를 판단하고, 다음 tail, head 값을 계산하는 logic
@@ -89,12 +89,12 @@ always @(*) begin
     is_enq_deq_simult = (enqueue_i & dequeue_i);
 
     // Circular incremented value of tail and head
-    tail_circular_inc = (tail == MEM_DEPTH-1) ? 0 : tail + 1;
-    head_circular_inc = (head == MEM_DEPTH-1) ? 0 : head + 1;
+    tail_circular_inc = (tail_r == MEM_DEPTH-1) ? 0 : tail_r + 1;
+    head_circular_inc = (head_r == MEM_DEPTH-1) ? 0 : head_r + 1;
 
     // Buffer state
-    full  = (head == tail_circular_inc);
-    empty = (head == tail);
+    full  = (head_r == tail_circular_inc);
+    empty = (head_r == tail_r);
 
     // Enqueue, dequeue가 가능한지 판단
     can_enqueue = ~full  | is_enq_deq_simult | OVERWRITABLE;
@@ -105,33 +105,32 @@ always @(*) begin
     do_dequeue = dequeue_i & can_dequeue;
 
     // 다음 tail, head 값 결정
-    tail_next = do_enqueue ? tail_circular_inc : tail;
-    head_next = (do_dequeue | (OVERWRITABLE & do_enqueue & full)) ? head_circular_inc : head;
+    tail_next = do_enqueue ? tail_circular_inc : tail_r;
+    head_next = (do_dequeue | (OVERWRITABLE & do_enqueue & full)) ? head_circular_inc : head_r;
 end
 
 // Head, tail transition logic
 always @(posedge clk or negedge rstn) begin
     if (~rstn) begin
-        tail <= {($clog2(LENGTH+1)){1'b0}};
-        head <= {($clog2(LENGTH)){1'b0}};
+        tail_r <= {($clog2(LENGTH+1)){1'b0}};
+        head_r <= {($clog2(LENGTH)){1'b0}};
     end
     else begin
-        tail <= tail_next;
-        head <= head_next;
+        tail_r <= tail_next;
+        head_r <= head_next;
     end
 end
 
 // Enqueue logic
-// Reset logic 사용하지 않아야 RAM으로 합성됨.
 always @(posedge clk) begin
     if (do_enqueue)
-        buffer_m[tail] <= data_i;
+        buffer_m[tail_r] <= data_i;
 end
 
 // Dequeue logic
 always @(*) begin
     if (do_dequeue)
-        data_o = buffer_m[head];
+        data_o = buffer_m[head_r];
     else
         data_o = {(WIDTH){1'b0}};
 end
